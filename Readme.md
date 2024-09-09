@@ -27,6 +27,7 @@ flowchart TD
 
 ## Roadmap
 
-1. Preparing an instruction-tunable dataset
+1. Preparing an instruction-tunable dataset based on TWON dataset
+2. 
 
 [^1]: Fine-tuning Language Models with Generative Adversarial Reward Modelling: <https://arxiv.org/abs/2305.06176>
