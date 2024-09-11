@@ -1,6 +1,10 @@
 import typing
 
+import pandas
+import transformers
 import pytest
+
+import llm_reinforcement_gan as rfgan
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -12,7 +16,7 @@ def data() -> typing.List[typing.Dict]:
         },
         {
             "data": "Does anyone have recommendations for a good sci-fi book series? I'm in need of a new read!",
-            "target": "You should try \'The Expanse\' series by James S. A. Corey. It's an epic space opera with great world-building.",
+            "target": "You should try 'The Expanse' series by James S. A. Corey. It's an epic space opera with great world-building.",
         },
         {
             "data": "Stuck in traffic again. Why did I move to the city? 😫 #CityLife",
@@ -27,3 +31,23 @@ def data() -> typing.List[typing.Dict]:
             "target": "Can't wait! I've already got my tickets for the midnight premiere. Which character are you most looking forward to seeing?",
         },
     ]
+
+
+@pytest.fixture(scope="session", autouse=True)
+def model_slug() -> str:
+    return "Qwen/Qwen2-0.5B-Instruct"
+
+
+@pytest.fixture(scope="session", autouse=True) 
+def dataset(data: typing.List[typing.Dict]) -> rfgan.Dataset:
+    return rfgan.Dataset(label="pytest", df=pandas.DataFrame.from_records(data=data))
+
+
+@pytest.fixture(scope="session", autouse=True) 
+def generator(model_slug: str) -> rfgan.neural.Generator:
+    return rfgan.neural.Generator(
+        tokenizer=transformers.AutoTokenizer.from_pretrained(model_slug),
+        model=transformers.AutoModelForCausalLM.from_pretrained(
+            model_slug, torch_dtype="auto", device_map="auto"
+        ),
+    )
