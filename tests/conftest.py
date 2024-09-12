@@ -1,8 +1,8 @@
 import typing
 
 import pandas
-import transformers
 import pytest
+import transformers
 
 import llm_reinforcement_gan as rfgan
 
@@ -38,12 +38,12 @@ def model_slug() -> str:
     return "Qwen/Qwen2-0.5B-Instruct"
 
 
-@pytest.fixture(scope="session", autouse=True) 
+@pytest.fixture(scope="session", autouse=True)
 def dataset(data: typing.List[typing.Dict]) -> rfgan.Dataset:
     return rfgan.Dataset(label="pytest", df=pandas.DataFrame.from_records(data=data))
 
 
-@pytest.fixture(scope="session", autouse=True) 
+@pytest.fixture(scope="session", autouse=True)
 def generator(model_slug: str) -> rfgan.neural.Generator:
     return rfgan.neural.Generator(
         tokenizer=transformers.AutoTokenizer.from_pretrained(model_slug),

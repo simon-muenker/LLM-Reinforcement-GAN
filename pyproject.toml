@@ -9,11 +9,13 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 pydantic = "^2.9.1"
+pyarrow = "^17.0.0"
 rich = "^13.8.1"
 pandas = "^2.2.2"
 torch = "^2.4.1"
 transformers = "^4.44.2"
 accelerate = "^0.34.2"
+cltrier-lib = "^0.1.5"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.6.4"
@@ -28,11 +30,12 @@ line-length = 96
 select = ["I", "N", "UP", "A", "PL"]
 
 [tool.mypy]
-files = ["src/llm_reinforcement_gan", "tests/"]
+files = ["src/llm_reinforcement_gan/", "tests/"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 log_cli = true
-log_cli_level = "DEBUG"
+log_cli_level = "ERROR"
 testpaths = ["tests"]
 
 

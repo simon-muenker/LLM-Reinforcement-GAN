@@ -1,9 +1,12 @@
 import typing
 
+import cltrier_lib
 import torch
 import transformers
 
 from llm_reinforcement_gan.neural import util
+
+transformers.logging.set_verbosity_error()
 
 
 class Generator(torch.nn.Module):
@@ -16,9 +19,13 @@ class Generator(torch.nn.Module):
         self.tokenizer: transformers.AutoTokenizer = tokenizer
         self.model: transformers.AutoModelForCausalLM = model
 
-    def format_chat(self, batch: typing.List[str]) -> typing.List[str]:
+    def format_chat(
+        self, batch: typing.List[cltrier_lib.inference.schemas.Chat]
+    ) -> typing.List[str]:
         return [
-            self.tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
+            self.tokenizer.apply_chat_template(
+                chat.model_dump()["messages"], tokenize=False, add_generation_prompt=True
+            )
             for chat in batch
         ]
 
@@ -30,14 +37,24 @@ class Generator(torch.nn.Module):
         )
 
     def prepare(
-        self, batch: typing.List[str]
+        self, batch: typing.List[cltrier_lib.inference.schemas.Chat]
     ) -> transformers.tokenization_utils_base.BatchEncoding:
-        return self.tokenize(self.format_chat([util.get_chat(sample) for sample in batch]))
+        return self.tokenize(self.format_chat(batch))
 
     def decode(self, batch: typing.List[torch.Tensor]) -> typing.List[str]:
         return self.tokenizer.batch_decode(batch, skip_special_tokens=True)
 
-    def generate(self, batch: typing.List[str], max_new_tokens: int = 12) -> typing.List[str]:
+    def embed(self, batch: typing.List[cltrier_lib.inference.schemas.Chat]) -> torch.Tensor:
+        model_inputs = self.prepare(batch)
+
+        outputs = self.model(**model_inputs, output_hidden_states=True)
+        outputs = outputs.hidden_states[-1]
+
+        return outputs
+
+    def generate(
+        self, batch: typing.List[cltrier_lib.inference.schemas.Chat], max_new_tokens: int = 12
+    ) -> typing.List[str]:
         model_inputs = self.prepare(batch)
 
         generated_ids = self.model.generate(
@@ -48,23 +65,6 @@ class Generator(torch.nn.Module):
 
         return self.decode(generated_ids)
 
-    def forward(
-        self,
-        batch: typing.List[str],
-        max_new_tokens: int = 6,
-    ) -> torch.Tensor:
-        model_inputs = self.prepare(batch)
-
-        generated_ids = self.model.generate(
-            model_inputs.input_ids, output_hidden_states=True, max_new_tokens=max_new_tokens
-        )
-
-        outputs = self.model(generated_ids, output_hidden_states=True)
-
-        outputs = outputs.hidden_states[-1]
-
-        return outputs
-    
     @property
     def hidden_size(self) -> int:
         return self.model.config.hidden_size
