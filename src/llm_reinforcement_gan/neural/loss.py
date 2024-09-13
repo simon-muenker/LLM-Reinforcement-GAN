@@ -2,19 +2,26 @@ import torch
 
 
 class Loss(torch.nn.Module):
-    def __init__(
-        self, loss_fn: torch.nn.Module = torch.nn.L1Loss(), w_o: float = 1.0, w_s: float = 1.0
-    ):
+    def __init__(self, loss_fn: torch.nn.Module = torch.nn.BCELoss()):
         super().__init__()
 
         self.loss_fn = loss_fn
-        self.w_o = w_o
-        self.w_s = w_s
+        self.tensor_type = dict(device="cuda", dtype=torch.bfloat16)
 
-    def discriminator(self, original: torch.Tensor, synthetic: torch.Tensor) -> torch.Tensor:
-        return self.w_o * self.loss_fn(
-            original, torch.zeros(original.size(), device="cuda")
-        ) + self.w_s * self.loss_fn(synthetic, torch.ones(synthetic.size(), device="cuda"))
+        self.w_g: float = 1.0
+        self.w_d: float = 1.0
 
     def generator(self, synthetic: torch.Tensor) -> torch.Tensor:
-        return self.w_s * self.loss_fn(synthetic, torch.zeros(synthetic.size(), device="cuda"))
+        return self.w_g * self.loss_fn(
+            synthetic, torch.zeros(synthetic.size(), **self.tensor_type)
+        )
+
+    def discriminator(self, original: torch.Tensor, synthetic: torch.Tensor) -> torch.Tensor:
+        return (
+            self.w_d
+            * (
+                self.loss_fn(original, torch.zeros(original.size(), **self.tensor_type))
+                + self.loss_fn(synthetic.detach(), torch.ones(synthetic.size(), **self.tensor_type))
+            )
+            / 2
+        )

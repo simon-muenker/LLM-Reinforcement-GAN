@@ -1,6 +1,7 @@
 import typing
 
 import cltrier_lib
+import peft
 import torch
 import transformers
 
@@ -17,7 +18,21 @@ class Generator(torch.nn.Module):
     ):
         super().__init__()
         self.tokenizer: transformers.AutoTokenizer = tokenizer
-        self.model: transformers.AutoModelForCausalLM = model
+        self.model: transformers.AutoModelForCausalLM = peft.get_peft_model(
+            model,
+            peft.LoraConfig(
+                task_type=peft.TaskType.CAUSAL_LM,
+                inference_mode=False,
+                r=8,
+                lora_alpha=32,
+                lora_dropout=0.1,
+            ),
+        )
+
+        # fix: ValueError: Asking to pad but the tokenizer does not have a padding token.
+        # src: https://huggingface.co/meta-llama/Meta-Llama-3.1-8B-Instruct/discussions/76
+        if not self.tokenizer.pad_token:
+             self.tokenizer.pad_token = self.tokenizer.eos_token
 
     def format_chat(
         self, batch: typing.List[cltrier_lib.inference.schemas.Chat]

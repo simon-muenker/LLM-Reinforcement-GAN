@@ -1,3 +1,5 @@
+import pathlib
+
 import pytest
 
 import llm_reinforcement_gan as rfgan
@@ -15,7 +17,9 @@ class TestPipeline:
             data_test=dataset,
             generator=generator,
             discriminator=rfgan.neural.Discriminator(size=generator.hidden_size),
-            args=rfgan.PipelineArgs(epochs=5, batch_size=2),
+            args=rfgan.PipelineArgs(
+                epochs=50, batch_size=8, report_path=pathlib.Path("./tests/_outputs")
+            ),
         )
 
     def test__call(self, pipeline: rfgan.Pipeline):

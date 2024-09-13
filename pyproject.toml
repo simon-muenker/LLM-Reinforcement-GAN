@@ -15,7 +15,13 @@ pandas = "^2.2.2"
 torch = "^2.4.1"
 transformers = "^4.44.2"
 accelerate = "^0.34.2"
+peft = "^0.12.0"
 cltrier-lib = "^0.1.5"
+
+[tool.poetry.group.eval.dependencies]
+notebook = "^7.2.2"
+matplotlib = "^3.9.2"
+seaborn = "^0.13.2"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.6.4"

@@ -1,10 +1,12 @@
+import pathlib
+
 import pandas
 import transformers
 
 import llm_reinforcement_gan as rfgan
 
 DATASET_META = dict(data_label="post", target_label="reply")
-MODEL_SLUG = "Qwen/Qwen2-0.5B-Instruct"
+MODEL_SLUG = "meta-llama/Meta-Llama-3.1-8B-Instruct"
 
 generator = rfgan.neural.Generator(
     tokenizer=transformers.AutoTokenizer.from_pretrained(MODEL_SLUG),
@@ -26,5 +28,7 @@ rfgan.Pipeline(
     ),
     generator=generator,
     discriminator=rfgan.neural.Discriminator(size=generator.hidden_size),
-    args=rfgan.PipelineArgs(epochs=5, batch_size=64),
+    args=rfgan.PipelineArgs(
+        epochs=20, batch_size=64, report_path=pathlib.Path("./experiments/_debug")
+    ),
 )()
