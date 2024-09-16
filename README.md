@@ -7,26 +7,29 @@ General training structure similar to RLGAF [^1].
 ```mermaid
 flowchart TD
 
+	classDef model fill:#EEE
+	classDef real fill:#d9ead3
+	classDef fake fill:#f4cccc
+
     data[(Sample)]
     instruction(Instruction)
 
-    real_response(Real Response)
-    real_embed(Real Embedding)
-    real_prediction(Real Prediction)
+    real_response(Real Response):::real
+    real_embed(Real Embedding):::real
+    real_prediction(Real Prediction):::real
 
-    synthetic_response(Synthetic Response)
-    synthetic_embed(Synthetic Embedding)
-    synthetic_prediction(Synthetic Prediction)
+    synthetic_response(Synthetic Response):::fake
+    synthetic_embed(Synthetic Embedding):::fake
+    synthetic_prediction(Synthetic Prediction):::fake
 
-    generator{{Generator: Instruction-tuned LLM}}
-    generator_link{{Generator: Instruction-tuned LLM}}
+    generator{{Generator: Instruction-tuned LLM}}:::model
+    generator_link{{Generator: Instruction-tuned LLM}}:::model
     generator o--o generator_link
 
-    discriminator{{Discriminator: Vanilla Transformer Encoder + Classifier}}
+    discriminator{{Discriminator: Vanilla Transformer Encoder + Classifier}}:::model
 
     loss_discriminator>Discriminator Loss]
     loss_generator>Generator Loss]
-
 
 	data --> instruction
     data --> real_response
@@ -48,7 +51,7 @@ flowchart TD
         subgraph discriminator train
             discriminator -->|classify| real_prediction & synthetic_prediction
 
-            real_prediction --> loss_generator
+            synthetic_prediction --> loss_generator
             real_prediction & synthetic_prediction --> loss_discriminator
 
             loss_discriminator -.->|optimize| discriminator
@@ -58,22 +61,6 @@ flowchart TD
         loss_generator -.->|optimize| generator_link
     
     end
-
-
-	classDef model fill:#EEE
-	generator:::model
-	discriminator:::model
-    generator_link:::model
-
-	classDef real fill:#d9ead3
-	real_response:::real
-    real_embed:::real
-    real_prediction:::real
-
-	classDef fake fill:#f4cccc
-	synthetic_response:::fake
-    synthetic_embed:::fake
-    synthetic_prediction:::fake
 ```
 
 ## Roadmap
