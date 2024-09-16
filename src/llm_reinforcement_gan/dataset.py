@@ -8,6 +8,7 @@ import torch
 class Dataset(pydantic.BaseModel, torch.utils.data.Dataset):
     label: str
     df: pandas.DataFrame
+    instruction: str
 
     data_label: str = "data"
     target_label: str = "target"

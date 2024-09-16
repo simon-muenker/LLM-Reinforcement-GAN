@@ -40,7 +40,11 @@ def model_slug() -> str:
 
 @pytest.fixture(scope="session", autouse=True)
 def dataset(data: typing.List[typing.Dict]) -> rfgan.Dataset:
-    return rfgan.Dataset(label="pytest", df=pandas.DataFrame.from_records(data=data))
+    return rfgan.Dataset(
+        label="pytest",
+        df=pandas.DataFrame.from_records(data=data),
+        instruction="You are a social media user and react to incoming messages in the form of Twitter-like replies.",
+    )
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -48,6 +52,7 @@ def generator(model_slug: str) -> rfgan.neural.Generator:
     return rfgan.neural.Generator(
         tokenizer=transformers.AutoTokenizer.from_pretrained(model_slug),
         model=transformers.AutoModelForCausalLM.from_pretrained(
-            model_slug, torch_dtype="auto", device_map="auto"
+            model_slug, torch_dtype="auto", device_map="cuda:0"
         ),
+        use_lora=False,
     )

@@ -21,7 +21,7 @@ class Loss(torch.nn.Module):
             self.w_d
             * (
                 self.loss_fn(original, torch.zeros(original.size(), **self.tensor_type))
-                + self.loss_fn(synthetic.detach(), torch.ones(synthetic.size(), **self.tensor_type))
+                + self.loss_fn(synthetic, torch.ones(synthetic.size(), **self.tensor_type))
             )
             / 2
         )

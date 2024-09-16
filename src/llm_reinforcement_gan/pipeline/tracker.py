@@ -5,6 +5,7 @@ import typing
 import pandas
 import pydantic
 import rich
+import seaborn
 
 
 class ValueContainer(pydantic.BaseModel):
@@ -69,16 +70,40 @@ class Epoch(pydantic.BaseModel):
 
 class Tracker(pydantic.BaseModel):
     epochs: typing.List[Epoch] = []
+
     report_path: pathlib.Path = pathlib.Path(".")
+    reporth_name: str = "train.tracking"
+
+    model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
 
     def __del__(self):
         if self.epochs:
-            (
-                pandas.DataFrame(self.model_dump()["epochs"])
-                .set_index("n")
-                .to_csv(self.report_path / "train.tracking.csv")
-            )
+            self.to_df().to_csv(self.report_path / f"{self.reporth_name}.csv")
+            self.plot(self.report_path / f"{self.reporth_name}.pdf")
 
-    def add(self, epoch: Epoch):
+    def add(self, epoch: Epoch) -> None:
         epoch.end()
         self.epochs.append(epoch)
+
+    def plot(self, path: pathlib.Path):
+        (
+            seaborn.lineplot(
+                self.to_df().reset_index().melt(
+                    id_vars=["n"],
+                    value_vars=[
+                        "loss_train_discriminator",
+                        "loss_test_generator",
+                        "loss_train_generator",
+                        "loss_test_discriminator",
+                    ],
+                ),
+                x="n",
+                y="value",
+                hue="variable",
+            )
+            .get_figure()
+            .savefig(path, bbox_inches="tight")
+        )
+    
+    def to_df(self) -> pandas.DataFrame:
+        return pandas.DataFrame(self.model_dump()["epochs"]).set_index("n")

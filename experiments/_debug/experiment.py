@@ -5,13 +5,17 @@ import transformers
 
 import llm_reinforcement_gan as rfgan
 
-DATASET_META = dict(data_label="post", target_label="reply")
-MODEL_SLUG = "meta-llama/Meta-Llama-3.1-8B-Instruct"
+DATASET_META = dict(
+    instruction="You are a social media user and react to incoming messages in the form of Twitter-like replies.",
+    data_label="post",
+    target_label="reply",
+)
+MODEL_SLUG = "Qwen/Qwen2-0.5B-Instruct"  # "meta-llama/Meta-Llama-3.1-8B-Instruct"
 
 generator = rfgan.neural.Generator(
     tokenizer=transformers.AutoTokenizer.from_pretrained(MODEL_SLUG),
     model=transformers.AutoModelForCausalLM.from_pretrained(
-        MODEL_SLUG, torch_dtype="auto", device_map="auto"
+        MODEL_SLUG, torch_dtype="auto", device_map="cuda:0"
     ),
 )
 
@@ -29,6 +33,6 @@ rfgan.Pipeline(
     generator=generator,
     discriminator=rfgan.neural.Discriminator(size=generator.hidden_size),
     args=rfgan.PipelineArgs(
-        epochs=20, batch_size=64, report_path=pathlib.Path("./experiments/_debug")
+        epochs=5, batch_size=80, report_path=pathlib.Path("./experiments/_debug/results")
     ),
 )()

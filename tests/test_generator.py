@@ -3,9 +3,9 @@ import typing
 import cltrier_lib
 import pytest
 import rich
+import torch
 
 import llm_reinforcement_gan as rfgan
-from llm_reinforcement_gan.pipeline.util import create_chats
 
 
 class TestGenerator:
@@ -13,7 +13,17 @@ class TestGenerator:
     def chats(
         self, data: typing.List[typing.Dict]
     ) -> typing.List[cltrier_lib.inference.schemas.Chat]:
-        return create_chats([sample["data"] for sample in data], message_role="user")
+        return [
+            cltrier_lib.inference.schemas.Chat(
+                messages=[
+                    cltrier_lib.inference.schemas.Message(
+                        role="user",
+                        content=sample["data"],
+                    )
+                ]
+            )
+            for sample in data
+        ]
 
     def test__generate(
         self,
@@ -27,4 +37,8 @@ class TestGenerator:
         generator: rfgan.neural.Generator,
         chats: typing.List[cltrier_lib.inference.schemas.Chat],
     ):
-        rich.print(generator.embed(chats))
+        logits, hidden_state = generator.embed(chats)
+
+        rich.print(logits.size())
+        rich.print(torch.argmax(logits, dim=-1, keepdim=True).size())
+        rich.print(hidden_state.size())
