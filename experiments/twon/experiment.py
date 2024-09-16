@@ -10,12 +10,12 @@ DATASET_META = dict(
     data_label="post",
     target_label="reply",
 )
-MODEL_SLUG = "Qwen/Qwen2-0.5B-Instruct"  # "meta-llama/Meta-Llama-3.1-8B-Instruct"
+MODEL_SLUG = "microsoft/Phi-3.5-mini-instruct"  # "meta-llama/Meta-Llama-3.1-8B-Instruct"
 
 generator = rfgan.neural.Generator(
     tokenizer=transformers.AutoTokenizer.from_pretrained(MODEL_SLUG),
     model=transformers.AutoModelForCausalLM.from_pretrained(
-        MODEL_SLUG, torch_dtype="auto", device_map="cuda:0"
+        MODEL_SLUG, torch_dtype="auto", device_map="auto" # "cuda:0"
     ),
 )
 
@@ -33,6 +33,6 @@ rfgan.Pipeline(
     generator=generator,
     discriminator=rfgan.neural.Discriminator(size=generator.hidden_size),
     args=rfgan.PipelineArgs(
-        epochs=5, batch_size=80, report_path=pathlib.Path("./experiments/twon/results")
+        epochs=5, batch_size=32, report_path=pathlib.Path("./experiments/twon/results")
     ),
 )()

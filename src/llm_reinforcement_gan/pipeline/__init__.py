@@ -19,11 +19,11 @@ class PipelineArgs(pydantic.BaseModel):
     max_generated_length: int = 64
 
     optimizer_generator_config: typing.Dict = dict(
-        lr=3e-5, betas=(0.9, 0.999), eps=1e-8, weight_decay=0.0
+        lr=1e-5, betas=(0.9, 0.999), eps=1e-8, weight_decay=0.0
     )
 
     optimizer_discriminator_config: typing.Dict = dict(
-        lr=3e-5, betas=(0.9, 0.999), eps=1e-8, weight_decay=0.0
+        lr=1e-5, betas=(0.9, 0.999), eps=1e-8, weight_decay=0.0
     )
 
     discriminator_input: typing.Literal["logits", "hidden"] = "hidden"

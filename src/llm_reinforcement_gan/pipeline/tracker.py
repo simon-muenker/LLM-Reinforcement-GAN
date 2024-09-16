@@ -130,7 +130,8 @@ class Tracker(pydantic.BaseModel):
                     })
             ), 
             col="split",
-            hue="component"
+            hue="component",
+            sharex=False
         )
         g.map_dataframe(
             seaborn.lineplot, 
