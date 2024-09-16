@@ -24,14 +24,34 @@ class ValueContainer(pydantic.BaseModel):
         return self.mean
 
 
+class RowContainer(pydantic.BaseModel):
+    label: str
+
+    generator: ValueContainer = ValueContainer()
+    discriminator: ValueContainer = ValueContainer()
+
+    def add_batch(self, value_generator: float, value_discriminator: float):
+        self.generator.add(value_generator)
+        self.discriminator.add(value_discriminator)
+
+    def to_df(self, n:int = 1) -> pandas.DataFrame:
+        return pandas.DataFrame(
+            data={
+                (self.label, "generator"): self.generator.values,
+                (self.label, "discriminator"): self.discriminator.values,
+            },
+            index=[ 
+                i + len(self.generator.values) * (n - 1)
+                for i in range(1, len(self.generator.values) + 1)
+            ]
+        ).rename_axis("iteration")
+
+    
 class Epoch(pydantic.BaseModel):
     n: int
 
-    loss_train_discriminator: ValueContainer = ValueContainer()
-    loss_test_generator: ValueContainer = ValueContainer()
-
-    loss_train_generator: ValueContainer = ValueContainer()
-    loss_test_discriminator: ValueContainer = ValueContainer()
+    train: RowContainer = RowContainer(label="train")
+    test: RowContainer = RowContainer(label="test")
 
     _start_time: datetime.datetime = pydantic.PrivateAttr(default_factory=datetime.datetime.now)
     _end_time: datetime.datetime | None = pydantic.PrivateAttr(default=None)
@@ -46,12 +66,10 @@ class Epoch(pydantic.BaseModel):
             return datetime.datetime.now() - self._start_time
 
     def add_batch_train(self, loss_generator: float, loss_discriminator: float):
-        self.loss_train_generator.add(loss_generator)
-        self.loss_train_discriminator.add(loss_discriminator)
+        self.train.add_batch(loss_generator, loss_discriminator)
 
     def add_batch_test(self, loss_generator: float, loss_discriminator: float):
-        self.loss_test_generator.add(loss_generator)
-        self.loss_test_discriminator.add(loss_discriminator)
+        self.test.add_batch(loss_generator, loss_discriminator)
 
     def end(self):
         self._end_time = datetime.datetime.now()
@@ -60,12 +78,15 @@ class Epoch(pydantic.BaseModel):
     def log(self):
         rich.print(
             f"[{self.n:03d}]\t",
-            f"loss(gen, train): {self.loss_train_generator.mean:2.4f}\t",
-            f"loss(gen, test): {self.loss_test_generator.mean:2.4f}\t",
-            f"loss(disc, train): {self.loss_train_discriminator.mean:2.4f}\t",
-            f"loss(disc, test): {self.loss_test_discriminator.mean:2.4f}\t",
+            f"loss(train, gen): {self.train.generator.mean:2.4f}\t",
+            f"loss(train, disc): {self.train.discriminator.mean:2.4f}\t",
+            f"loss(test, gen): {self.test.generator.mean:2.4f}\t",
+            f"loss(test, disc): {self.test.discriminator.mean:2.4f}\t",
             f"duration: {self.duration}",
         )
+
+    def to_df(self) -> pandas.DataFrame:
+        return self.train.to_df(self.n).join(self.test.to_df(self.n), how="outer")
 
 
 class Tracker(pydantic.BaseModel):
@@ -86,26 +107,39 @@ class Tracker(pydantic.BaseModel):
         self.epochs.append(epoch)
 
     def plot(self, path: pathlib.Path):
-        (
-            seaborn.lineplot(
-                self.to_df()
-                .reset_index()
-                .melt(
-                    id_vars=["n"],
-                    value_vars=[
-                        "loss_train_discriminator",
-                        "loss_test_generator",
-                        "loss_train_generator",
-                        "loss_test_discriminator",
-                    ],
-                ),
-                x="n",
-                y="value",
-                hue="variable",
-            )
-            .get_figure()
-            .savefig(path, bbox_inches="tight")
+        g = seaborn.FacetGrid(
+            (
+                pandas.concat([
+                        epoch.to_df()
+                        for epoch in self.epochs
+                    ])
+                    .reset_index()
+                    .melt(
+                        id_vars=[("iteration", "")],
+                        value_vars=[
+                            ("train", "generator"),
+                            ("train", "discriminator"),
+                            ("test", "generator"),
+                            ("test", "discriminator"),
+                        ],
+                    )
+                    .rename(columns={
+                        "variable_0": "split",
+                        "variable_1": "component",
+                        ("iteration", ""): "iteration"
+                    })
+            ), 
+            col="split",
+            hue="component"
         )
+        g.map_dataframe(
+            seaborn.lineplot, 
+            x="iteration",
+            y="value",
+            
+        )
+        g.add_legend()
+        g.savefig(path, bbox_inches="tight")
 
     def to_df(self) -> pandas.DataFrame:
         return pandas.DataFrame(self.model_dump()["epochs"]).set_index("n")
