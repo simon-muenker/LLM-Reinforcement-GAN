@@ -22,17 +22,17 @@ generator = rfgan.neural.Generator(
 rfgan.Pipeline(
     data_train=rfgan.Dataset(
         label="debug_train",
-        df=pandas.read_parquet("./experiments/_debug/dataset.train.parquet"),
+        df=pandas.read_parquet("./experiments/twon/data/prelim.train.parquet"),
         **DATASET_META,
     ),
     data_test=rfgan.Dataset(
         label="debug_test",
-        df=pandas.read_parquet("./experiments/_debug/dataset.test.parquet"),
+        df=pandas.read_parquet("./experiments/twon/data/prelim.test.parquet"),
         **DATASET_META,
     ),
     generator=generator,
     discriminator=rfgan.neural.Discriminator(size=generator.hidden_size),
     args=rfgan.PipelineArgs(
-        epochs=5, batch_size=80, report_path=pathlib.Path("./experiments/_debug/results")
+        epochs=5, batch_size=80, report_path=pathlib.Path("./experiments/twon/results")
     ),
 )()

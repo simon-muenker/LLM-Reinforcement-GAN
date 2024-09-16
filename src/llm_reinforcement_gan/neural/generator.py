@@ -2,6 +2,7 @@ import typing
 
 import cltrier_lib
 import peft
+import pydantic
 import torch
 import transformers
 
@@ -10,26 +11,32 @@ from llm_reinforcement_gan.neural import util
 transformers.logging.set_verbosity_error()
 
 
+class GeneratorArgs(pydantic.BaseModel):
+    use_lora: bool = False
+    lora_config: typing.Dict = dict(
+        inference_mode=False,
+        r=8,
+        lora_alpha=32,
+        lora_dropout=0.1,
+    )
+
+
 class Generator(torch.nn.Module):
     def __init__(
         self,
         tokenizer: transformers.AutoTokenizer,
         model: transformers.AutoModelForCausalLM,
-        use_lora: bool = True,
+        args: GeneratorArgs = GeneratorArgs(),
     ):
         super().__init__()
+        self.args: GeneratorArgs = args
+
         self.tokenizer: transformers.AutoTokenizer = tokenizer
 
-        if use_lora:
+        if self.args.use_lora:
             self.model: transformers.AutoModelForCausalLM = peft.get_peft_model(
                 model,
-                peft.LoraConfig(
-                    task_type=peft.TaskType.CAUSAL_LM,
-                    inference_mode=False,
-                    r=8,
-                    lora_alpha=32,
-                    lora_dropout=0.1,
-                ),
+                peft.LoraConfig(task_type=peft.TaskType.CAUSAL_LM, **self.args.lora_config),
             )
 
         else:
@@ -72,7 +79,7 @@ class Generator(torch.nn.Module):
         return outputs.logits, outputs.hidden_states[-1]
 
     def generate(
-        self, batch: typing.List[cltrier_lib.inference.schemas.Chat], max_new_tokens: int = 12
+        self, batch: typing.List[cltrier_lib.inference.schemas.Chat], max_new_tokens: int
     ) -> typing.List[str]:
         model_inputs = self.prepare(batch)
 

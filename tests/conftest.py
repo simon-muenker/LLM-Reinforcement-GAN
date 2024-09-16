@@ -44,6 +44,8 @@ def dataset(data: typing.List[typing.Dict]) -> rfgan.Dataset:
         label="pytest",
         df=pandas.DataFrame.from_records(data=data),
         instruction="You are a social media user and react to incoming messages in the form of Twitter-like replies.",
+        data_label="data",
+        target_label="target",
     )
 
 
@@ -54,5 +56,4 @@ def generator(model_slug: str) -> rfgan.neural.Generator:
         model=transformers.AutoModelForCausalLM.from_pretrained(
             model_slug, torch_dtype="auto", device_map="cuda:0"
         ),
-        use_lora=False,
     )

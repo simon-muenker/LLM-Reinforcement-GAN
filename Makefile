@@ -1,11 +1,11 @@
-.PHONY: lint
-lint:
+.PHONY: pretty
+pretty:
 	@poetry run ruff check --fix
 	@poetry run ruff format
 
 
-.PHONY: check
-check:
+.PHONY: lint
+lint:
 	@poetry run mypy
 
 
@@ -14,6 +14,6 @@ test:
 	@poetry run pytest -s
 
 
-.PHONY: debug_experiment
-debug_experiment:
-	@poetry run python ./experiments/_debug/experiment.py
+.PHONY: experiment_twon
+experiment_twon:
+	@poetry run python ./experiments/twon/experiment.py

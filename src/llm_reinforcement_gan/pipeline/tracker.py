@@ -88,7 +88,9 @@ class Tracker(pydantic.BaseModel):
     def plot(self, path: pathlib.Path):
         (
             seaborn.lineplot(
-                self.to_df().reset_index().melt(
+                self.to_df()
+                .reset_index()
+                .melt(
                     id_vars=["n"],
                     value_vars=[
                         "loss_train_discriminator",
@@ -104,6 +106,6 @@ class Tracker(pydantic.BaseModel):
             .get_figure()
             .savefig(path, bbox_inches="tight")
         )
-    
+
     def to_df(self) -> pandas.DataFrame:
         return pandas.DataFrame(self.model_dump()["epochs"]).set_index("n")

@@ -5,7 +5,7 @@ import torch
 import llm_reinforcement_gan as rfgan
 
 SIZE: int = 32
-INPUT: torch.Tensor = torch.rand(4, 16, SIZE, dtype=torch.bfloat16, device="cuda")
+INPUT: torch.Tensor = torch.rand(4, 16, SIZE, dtype=torch.bfloat16, device="cuda:0")
 
 
 class TestDiscriminator:

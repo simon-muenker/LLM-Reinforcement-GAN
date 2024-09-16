@@ -10,8 +10,8 @@ class Dataset(pydantic.BaseModel, torch.utils.data.Dataset):
     df: pandas.DataFrame
     instruction: str
 
-    data_label: str = "data"
-    target_label: str = "target"
+    data_label: str
+    target_label: str
 
     model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
 
