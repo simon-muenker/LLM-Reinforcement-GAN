@@ -16,9 +16,9 @@ class TestPipeline:
             data_train=dataset,
             data_test=dataset,
             generator=generator,
-            discriminator=rfgan.neural.Discriminator(size=generator.hidden_size),
+            discriminator=rfgan.neural.Discriminator(input_size=generator.hidden_size),
             args=rfgan.PipelineArgs(
-                epochs=2, batch_size=2, report_path=pathlib.Path("./tests/_outputs")
+                epochs=100, batch_size=2, report_path=pathlib.Path("./tests/_outputs")
             ),
         )
 

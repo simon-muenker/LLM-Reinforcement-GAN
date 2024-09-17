@@ -1,3 +1,0 @@
-n,train,test,duration
-1,"{'label': 'train', 'generator': 0.4680989583333333, 'discriminator': 1.1119791666666667}","{'label': 'test', 'generator': 0.09781901041666667, 'discriminator': 1.2447916666666667}",0 days 00:00:09.137597
-2,"{'label': 'train', 'generator': 0.07877604166666667, 'discriminator': 1.6015625}","{'label': 'test', 'generator': 0.0489501953125, 'discriminator': 1.6067708333333333}",0 days 00:00:08.252210

@@ -11,7 +11,7 @@ INPUT: torch.Tensor = torch.rand(4, 16, SIZE, dtype=torch.bfloat16, device="cuda
 class TestDiscriminator:
     @pytest.fixture
     def discriminator(self) -> rfgan.neural.Discriminator:
-        return rfgan.neural.Discriminator(size=SIZE)
+        return rfgan.neural.Discriminator(input_size=SIZE)
 
     def test__forward(self, discriminator: rfgan.neural.Discriminator):
         prediction: torch.Tensor = discriminator(INPUT)

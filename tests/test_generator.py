@@ -30,7 +30,7 @@ class TestGenerator:
         generator: rfgan.neural.Generator,
         chats: typing.List[cltrier_lib.inference.schemas.Chat],
     ):
-        rich.print(generator.generate(chats))
+        rich.print(generator.generate(chats, max_new_tokens=16))
 
     def test__embed(
         self,

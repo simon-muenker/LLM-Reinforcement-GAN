@@ -34,19 +34,19 @@ class RowContainer(pydantic.BaseModel):
         self.generator.add(value_generator)
         self.discriminator.add(value_discriminator)
 
-    def to_df(self, n:int = 1) -> pandas.DataFrame:
+    def to_df(self, n: int = 1) -> pandas.DataFrame:
         return pandas.DataFrame(
             data={
                 (self.label, "generator"): self.generator.values,
                 (self.label, "discriminator"): self.discriminator.values,
             },
-            index=[ 
+            index=[
                 i + len(self.generator.values) * (n - 1)
                 for i in range(1, len(self.generator.values) + 1)
-            ]
+            ],
         ).rename_axis("iteration")
 
-    
+
 class Epoch(pydantic.BaseModel):
     n: int
 
@@ -99,7 +99,9 @@ class Tracker(pydantic.BaseModel):
 
     def __del__(self):
         if self.epochs:
-            self.to_df().to_csv(self.report_path / f"{self.reporth_name}.csv")
+            self.to_df().to_json(
+                self.report_path / f"{self.reporth_name}.json", orient="records", indent=4
+            )
             self.plot(self.report_path / f"{self.reporth_name}.pdf")
 
     def add(self, epoch: Epoch) -> None:
@@ -109,38 +111,36 @@ class Tracker(pydantic.BaseModel):
     def plot(self, path: pathlib.Path):
         g = seaborn.FacetGrid(
             (
-                pandas.concat([
-                        epoch.to_df()
-                        for epoch in self.epochs
-                    ])
-                    .reset_index()
-                    .melt(
-                        id_vars=[("iteration", "")],
-                        value_vars=[
-                            ("train", "generator"),
-                            ("train", "discriminator"),
-                            ("test", "generator"),
-                            ("test", "discriminator"),
-                        ],
-                    )
-                    .rename(columns={
+                pandas.concat([epoch.to_df() for epoch in self.epochs])
+                .reset_index()
+                .melt(
+                    id_vars=[("iteration", "")],
+                    value_vars=[
+                        ("train", "generator"),
+                        ("train", "discriminator"),
+                        ("test", "generator"),
+                        ("test", "discriminator"),
+                    ],
+                )
+                .rename(
+                    columns={
                         "variable_0": "split",
                         "variable_1": "component",
-                        ("iteration", ""): "iteration"
-                    })
-            ), 
+                        ("iteration", ""): "iteration",
+                    }
+                )
+            ),
             col="split",
             hue="component",
-            sharex=False
+            sharex=False,
         )
         g.map_dataframe(
-            seaborn.lineplot, 
+            seaborn.lineplot,
             x="iteration",
             y="value",
-            
         )
         g.add_legend()
         g.savefig(path, bbox_inches="tight")
 
     def to_df(self) -> pandas.DataFrame:
-        return pandas.DataFrame(self.model_dump()["epochs"]).set_index("n")
+        return pandas.DataFrame(self.model_dump()["epochs"])
