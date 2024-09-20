@@ -1,5 +1,6 @@
 import pathlib
 import typing
+import random 
 
 import cltrier_lib
 import pandas
@@ -17,6 +18,9 @@ class PipelineArgs(pydantic.BaseModel):
     epochs: int = 50
     batch_size: int = 64
     max_generated_length: int = 64
+
+    generator_optimize_skip: float = 0.5
+    discriminator_optimize_repeats: int = 3
 
     optimizer_generator_config: typing.Dict = dict(
         lr=1e-5, betas=(0.9, 0.999), eps=1e-8, weight_decay=0.0
@@ -134,7 +138,7 @@ class Pipeline(pydantic.BaseModel):
 
         loss = self.loss_fn.generator(synthetic_preds)
 
-        if optimizer:
+        if optimizer and random.random() > self.args.generator_optimize_skip:
             self._optimize(loss, optimizer)
 
         return loss.item()
@@ -155,13 +159,16 @@ class Pipeline(pydantic.BaseModel):
         elif self.args.discriminator_input == "hidden":
             original_inputs, sythentic_inputs = original_hidden, synthetic_hidden
 
-        original_preds = self.discriminator.forward(original_inputs.detach())
-        synthetic_preds = self.discriminator.forward(sythentic_inputs.detach())
+        repititions: int = self.args.discriminator_optimize_repeats if optimizer else 1
+        
+        for _ in range(repititions):
+            original_preds = self.discriminator.forward(original_inputs.detach())
+            synthetic_preds = self.discriminator.forward(sythentic_inputs.detach())
 
-        loss = self.loss_fn.discriminator(original_preds, synthetic_preds)
+            loss = self.loss_fn.discriminator(original_preds, synthetic_preds)
 
-        if optimizer:
-            self._optimize(loss, optimizer)
+            if optimizer:
+                self._optimize(loss, optimizer)
 
         return loss.item()
 
