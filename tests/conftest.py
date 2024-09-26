@@ -39,6 +39,11 @@ def model_slug() -> str:
 
 
 @pytest.fixture(scope="session", autouse=True)
+def device() -> str:
+    return "cuda:0"
+
+
+@pytest.fixture(scope="session", autouse=True)
 def dataset(data: typing.List[typing.Dict]) -> rfgan.Dataset:
     return rfgan.Dataset(
         label="pytest",
@@ -50,10 +55,10 @@ def dataset(data: typing.List[typing.Dict]) -> rfgan.Dataset:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def generator(model_slug: str) -> rfgan.neural.Generator:
+def generator(model_slug: str, device: str) -> rfgan.neural.Generator:
     return rfgan.neural.Generator(
         tokenizer=transformers.AutoTokenizer.from_pretrained(model_slug),
         model=transformers.AutoModelForCausalLM.from_pretrained(
-            model_slug, torch_dtype="auto", device_map="cuda:0"
+            model_slug, torch_dtype="auto", device_map=device
         ),
     )
