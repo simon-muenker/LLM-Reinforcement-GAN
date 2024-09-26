@@ -12,14 +12,14 @@ import torch
 from llm_reinforcement_gan import neural
 from llm_reinforcement_gan.dataset import Dataset
 from llm_reinforcement_gan.pipeline.tracker import Epoch, Tracker
-
+from llm_reinforcement_gan.pipeline.evaluate import Evaluate
 
 class PipelineArgs(pydantic.BaseModel):
     epochs: int = 50
     batch_size: int = 64
     max_generated_length: int = 64
 
-    generator_optimize_skip: float = 0.5
+    generator_optimize_skip: float = 0.25
     discriminator_optimize_repeats: int = 3
 
     optimizer_generator_config: typing.Dict = dict(
@@ -57,9 +57,7 @@ class Pipeline(pydantic.BaseModel):
 
         tracker: Tracker = Tracker(report_path=self.args.report_path)
 
-        self._predict(self.data_test).to_csv(
-            self.args.report_path / f"predictions.before.csv", index=False
-        )
+        self._predict(self.data_test, prefix=self.args.report_path / "eval.before")
 
         for n in range(1, self.args.epochs + 1):
             epoch = Epoch(n=n)
@@ -89,9 +87,7 @@ class Pipeline(pydantic.BaseModel):
 
             tracker.add(epoch)
 
-        self._predict(self.data_test).to_csv(
-            self.args.report_path / f"predictions.after.csv", index=False
-        )
+        self._predict(self.data_test, prefix=self.args.report_path / "eval.after")
 
     def _step(
         self,
@@ -177,7 +173,7 @@ class Pipeline(pydantic.BaseModel):
         optimizer.step()
         optimizer.zero_grad()
 
-    def _predict(self, dataset: torch.utils.data.Dataset) -> pandas.DataFrame:
+    def _predict(self, dataset: torch.utils.data.Dataset, prefix: str) -> None:
         rows: typing.Dict[str, typing.List] = {
             "instructions": [],
             "originals": [],
@@ -193,7 +189,11 @@ class Pipeline(pydantic.BaseModel):
             rows["originals"].extend([chat.messages[-1].content for chat in originals])
             rows["synthetics"].extend([chat.messages[-1].content for chat in synthetics])
 
-        return pandas.DataFrame.from_dict(rows)
+        corr, mae = Evaluate()(rows["originals"], rows["synthetics"])
+
+        pandas.DataFrame.from_dict(rows).to_csv(f"{prefix}.predictions.csv", index=False)
+        corr.to_csv(f"{prefix}.corr.csv")
+        mae.to_csv(f"{prefix}.mae.csv")
 
     def _get_data_loader(self, dataset: torch.utils.data.Dataset):
         return torch.utils.data.DataLoader(
