@@ -594,13 +594,13 @@ files = [
 
 [[package]]
 name = "cltrier-lib"
-version = "0.1.5"
+version = "0.1.6"
 description = ""
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "cltrier_lib-0.1.5-py3-none-any.whl", hash = "sha256:2322ad2538d4cb7ed7da2fc21ccba408b80da6eb06ab81b5ad2fac474a30eb5e"},
-    {file = "cltrier_lib-0.1.5.tar.gz", hash = "sha256:1204e51ed4e3784cdf693c48066bed3254193c407376efad70f5deaf28e1d584"},
+    {file = "cltrier_lib-0.1.6-py3-none-any.whl", hash = "sha256:8b4fca7c46904039bc87bdd1aa4b36110b644ff49d83563495dd67c766f9807a"},
+    {file = "cltrier_lib-0.1.6.tar.gz", hash = "sha256:a027cecd154951623770e7ffcbb767d3553720937caeaa078b11c52aa985ae7f"},
 ]
 
 [package.dependencies]
