@@ -1,6 +1,6 @@
 import pathlib
+import random
 import typing
-import random 
 
 import cltrier_lib
 import pandas
@@ -11,8 +11,9 @@ import torch
 
 from llm_reinforcement_gan import neural
 from llm_reinforcement_gan.dataset import Dataset
-from llm_reinforcement_gan.pipeline.tracker import Epoch, Tracker
 from llm_reinforcement_gan.pipeline.evaluate import Evaluate
+from llm_reinforcement_gan.pipeline.tracker import Epoch, Tracker
+
 
 class PipelineArgs(pydantic.BaseModel):
     epochs: int = 50
@@ -156,7 +157,7 @@ class Pipeline(pydantic.BaseModel):
             original_inputs, sythentic_inputs = original_hidden, synthetic_hidden
 
         repititions: int = self.args.discriminator_optimize_repeats if optimizer else 1
-        
+
         for _ in range(repititions):
             original_preds = self.discriminator.forward(original_inputs.detach())
             synthetic_preds = self.discriminator.forward(sythentic_inputs.detach())
