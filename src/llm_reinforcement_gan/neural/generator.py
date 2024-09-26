@@ -61,7 +61,7 @@ class Generator(torch.nn.Module):
         self, batch: typing.List[str]
     ) -> transformers.tokenization_utils_base.BatchEncoding:
         return self.tokenizer(batch, return_tensors="pt", padding=True, truncation=True).to(
-            "cuda"
+            next(self.model.parameters()).device
         )
 
     def prepare(

@@ -5,18 +5,21 @@ import torch
 import llm_reinforcement_gan as rfgan
 
 SIZE: int = 32
-INPUT: torch.Tensor = torch.rand(4, 16, SIZE, dtype=torch.bfloat16, device="cuda:0")
 
 
 class TestDiscriminator:
     @pytest.fixture
+    def input(self, device:str) -> torch.Tensor:
+        return torch.rand(4, 16, SIZE, dtype=torch.bfloat16, device=torch.device(device))
+    
+    @pytest.fixture
     def discriminator(self) -> rfgan.neural.Discriminator:
         return rfgan.neural.Discriminator(input_size=SIZE)
 
-    def test__forward(self, discriminator: rfgan.neural.Discriminator):
-        prediction: torch.Tensor = discriminator(INPUT)
+    def test__forward(self, discriminator: rfgan.neural.Discriminator, input: torch.Tensor, device:str):
+        prediction: torch.Tensor = discriminator(input).to(torch.device(device))
 
-        assert INPUT.size()[0] == prediction.size()[0]
+        assert input.size()[0] == prediction.size()[0]
 
-        rich.print(INPUT.size())
+        rich.print(input.size())
         rich.print(prediction.size())

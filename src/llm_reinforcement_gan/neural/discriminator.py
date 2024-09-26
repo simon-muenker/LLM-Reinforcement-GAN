@@ -30,8 +30,6 @@ class Discriminator(torch.nn.Module):
         self.linear = torch.nn.Linear(input_size, 1, **self.args.linear_config)
         self.activation = torch.nn.Sigmoid()
 
-        self.to("cuda:0")
-
     def forward(self, batch: torch.Tensor) -> torch.Tensor:
         output: torch.Tensor = self.encoder(batch)
         _, (output, _) = self.lstm(output)

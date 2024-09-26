@@ -1,5 +1,6 @@
 import pathlib
 
+import torch
 import pandas
 import transformers
 
@@ -12,12 +13,14 @@ DATASET_META = dict(
 )
 MODEL_SLUG = "Qwen/Qwen2-0.5B-Instruct"  # "microsoft/Phi-3.5-mini-instruct", "meta-llama/Meta-Llama-3.1-8B-Instruct"
 
+DEVICE: str = "cuda:2"
+
 generator = rfgan.neural.Generator(
     tokenizer=transformers.AutoTokenizer.from_pretrained(MODEL_SLUG),
     model=transformers.AutoModelForCausalLM.from_pretrained(
         MODEL_SLUG,
         torch_dtype="auto",
-        device_map="cuda:0",  # "cuda:0"
+        device_map=DEVICE,
     ),
 )
 
@@ -33,7 +36,8 @@ rfgan.Pipeline(
         **DATASET_META,
     ),
     generator=generator,
-    discriminator=rfgan.neural.Discriminator(input_size=generator.hidden_size),
+    discriminator=rfgan.neural.Discriminator(input_size=generator.hidden_size).to(torch.device(DEVICE)),
+    loss_fn=rfgan.neural.Loss(device=torch.device(DEVICE)),
     args=rfgan.PipelineArgs(
         epochs=5, batch_size=32, report_path=pathlib.Path("./experiments/twon/results")
     ),

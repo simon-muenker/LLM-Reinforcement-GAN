@@ -43,7 +43,7 @@ class Pipeline(pydantic.BaseModel):
     generator: neural.Generator
     discriminator: neural.Discriminator
 
-    loss_fn: neural.Loss = neural.Loss()
+    loss_fn: neural.Loss
 
     args: PipelineArgs = PipelineArgs()
     model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)

@@ -2,11 +2,11 @@ import torch
 
 
 class Loss(torch.nn.Module):
-    def __init__(self, loss_fn: torch.nn.Module = torch.nn.BCELoss()):
+    def __init__(self, loss_fn: torch.nn.Module = torch.nn.BCELoss(), device: torch.device = torch.device("cuda")):
         super().__init__()
 
         self.loss_fn = loss_fn
-        self.tensor_type = dict(device="cuda", dtype=torch.bfloat16)
+        self.tensor_type = dict(device=device, dtype=torch.bfloat16)
 
         self.w_g: float = 1.0
         self.w_d: float = 1.0
