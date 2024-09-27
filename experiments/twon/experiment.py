@@ -35,7 +35,7 @@ if __name__ == "__main__":
     parser.add_argument("--model", type=str, default="llama32_tiny", help="model to optimize")
     parser.add_argument("--dataset", type=str, default="right", help="dataset to use")
     parser.add_argument("--epochs", type=int, default=50, help="number of epochs of training")
-    parser.add_argument("--batch_size", type=int, default=32, help="size of the batches")
+    parser.add_argument("--batch_size", type=int, default=24, help="size of the batches")
     parser.add_argument("--device", type=str, default="cuda:2", help="gpu computation")
     parser.add_argument("--use_lora", type=bool, default=False, help="train lora adapters")
 
