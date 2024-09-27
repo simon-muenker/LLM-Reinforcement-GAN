@@ -16,4 +16,4 @@ test:
 
 .PHONY: experiment_twon
 experiment_twon:
-	@poetry run python ./experiments/twon/experiment_left.py
+	@poetry run python ./experiments/twon/experiment.py
